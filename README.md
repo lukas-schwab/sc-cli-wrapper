@@ -57,7 +57,7 @@ The easiest way to run the API is via Docker Compose.
     ```
     Follow the device-code instructions in your browser.
     
-    > [!TIP]
+    > [!NOTE]
     > Authentication will only work if your scalable account is approved for CLI use. Read the official [Scalable CLI](https://github.com/ScalableCapital/scalable-cli) docs to learn more.
 
 4.  **Access the API**:
