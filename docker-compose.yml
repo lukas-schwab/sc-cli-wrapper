@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  scalable-api:
+    build:
+      context: .
+      args:
+        - SC_VERSION=latest
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist the Scalable CLI configuration and session
+      # This ensures you don't have to log in every time the container restarts
+      - scalable_config:/root/.config/scalable-cli
+    environment:
+      - PYTHONUNBUFFERED=1
+      # REQUIRED: Set an API Key to secure your API endpoints.
+      # All requests must include the 'X-API-Key' header.
+      - SC_API_KEY=
+    restart: unless-stopped
+
+volumes:
+  scalable_config:

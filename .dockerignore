@@ -1,0 +1,33 @@
+# Git metadata
+.git
+.gitignore
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Scalable CLI Session & Config (Crucial for security)
+.config/
+*session*
+*.toml
+*.json
+!requirements.txt
+
+# Docker files (We don't need the compose file inside the image)
+docker-compose.yml
+.dockerignore
+
+# Documentation & Legal
+README.md
+LICENSE
+docs/
+
+# Misc
+.DS_Store
+.idea/
+.vscode/
