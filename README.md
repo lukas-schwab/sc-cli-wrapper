@@ -26,7 +26,7 @@ The wrapper just uses the official [Scalable CLI](https://github.com/ScalableCap
     - **Manual Override**: You can still provide an `SC_API_KEY` via environment variables or a `.env` file for explicit control.
     - **Note on Layered Security**: Access to your account relies on two distinct auth layers. The **API Key** (Layer 1) protects the wrapper (preventing strangers from calling the API), while the **CLI Login** (Layer 2) handles the actual encrypted session with Scalable Capital. The latter is handled by the official [Scalable CLI](https://github.com/ScalableCapital/scalable-cli) and remains untouched by this project. Ideally, you may also ensure that the API is never exposed to the public internet (Layer 3).
 - **Session & Key Data**: Both your session tokens and your API key are stored in the `config` Docker volume.
-- **Sources**: Binarys are downloaded from the official [Scalable CLI](https://github.com/ScalableCapital/scalable-cli).
+- **Sources**: Binarys are downloaded from the official [Scalable CLI](https://github.com/ScalableCapital/scalable-cli) repository.
 
 ## Features
 
@@ -64,13 +64,6 @@ The easiest way to run the API is via Docker.
 
 > [!TIP]
 > Authentication will only work if your Scalable account is approved for CLI use. Read the official [Scalable CLI](https://github.com/ScalableCapital/scalable-cli) docs to learn more.
-
-## Manual Key Configuration
-
-If you want to set a specific API key without using environment variables:
-```bash
-docker compose exec api python main.py set-key YOUR_CUSTOM_KEY
-```
 
 ## Usage
 
@@ -122,4 +115,11 @@ You can customize the CLI version by changing the `SC_VERSION` build argument in
 ```yaml
 args:
   - SC_VERSION=latest  # or specify a version like v0.1.0
+```
+
+### Manual API Key Configuration
+
+If you want to set a specific API key without using environment variables:
+```bash
+docker compose exec api python main.py set-key YOUR_CUSTOM_KEY
 ```
