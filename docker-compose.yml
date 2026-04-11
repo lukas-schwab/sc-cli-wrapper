@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   scalable-api:
     build:
@@ -14,9 +12,6 @@ services:
       - scalable_config:/root/.config/scalable-cli
     environment:
       - PYTHONUNBUFFERED=1
-      # REQUIRED: Set an API Key to secure your API endpoints.
-      # All requests must include the 'X-API-Key' header.
-      - SC_API_KEY=
     restart: unless-stopped
 
 volumes:

@@ -8,9 +8,18 @@ from fastapi.security.api_key import APIKeyHeader
 from fastapi.responses import JSONResponse
 
 SC_PATH = os.getenv("SC_PATH", "sc")
-SC_API_KEY = os.getenv("SC_API_KEY")
+import secrets
+from pathlib import Path
+from dotenv import load_dotenv
 
-FORBIDDEN_KEYS = ["your-secret-key"]
+# Load .env file if it exists
+load_dotenv()
+
+SC_PATH = os.getenv("SC_PATH", "sc")
+CONFIG_DIR = os.getenv("SC_CONFIG_DIR", "/root/.config/scalable-cli")
+API_KEY_FILE = Path(CONFIG_DIR) / "api_key"
+
+FORBIDDEN_KEYS = ["your-secret-key", ""]
 
 # Setup logging
 logging.basicConfig(
@@ -19,21 +28,58 @@ logging.basicConfig(
 )
 logger = logging.getLogger("scalable-api")
 
-if not SC_API_KEY:
-    logger.error("SC_API_KEY environment variable is not set.")
-    logger.error("For security, you must provide a unique API key in docker-compose.yml.")
-    raise ValueError("Missing SC_API_KEY")
+def get_or_create_api_key():
+    """
+    Retrieves the API key from:
+    1. Environment variable (SC_API_KEY)
+    2. Persistent file (api_key)
+    3. Auto-generation (stored in persistent file)
+    """
+    # 1. Check environment
+    env_key = os.getenv("SC_API_KEY")
+    if env_key and env_key.lower() not in FORBIDDEN_KEYS:
+        return env_key, "env"
 
-if SC_API_KEY.lower() in FORBIDDEN_KEYS:
-    logger.error(f"'{SC_API_KEY}' is not a secure API key.")
-    logger.error("Please choose a unique, random secret for SC_API_KEY.")
-    raise ValueError("Insecure SC_API_KEY")
+    # 2. Check persistent file
+    if API_KEY_FILE.exists():
+        file_key = API_KEY_FILE.read_text().strip()
+        if file_key and file_key.lower() not in FORBIDDEN_KEYS:
+            return file_key, "file"
+
+    # 3. Generate new key
+    new_key = secrets.token_hex(16)
+    try:
+        os.makedirs(CONFIG_DIR, exist_ok=True)
+        API_KEY_FILE.write_text(new_key)
+        return new_key, "generated"
+    except Exception as e:
+        logger.error(f"Failed to save generated API key to {API_KEY_FILE}: {e}")
+        # Return the key anyway so the app can start, but it won't persist
+        return new_key, "ephemeral"
+
+SC_API_KEY, key_source = get_or_create_api_key()
+
+if key_source == "generated":
+    logger.warning("!------------------------------------------------------------!")
+    logger.warning("! NO API KEY FOUND. A NEW ONE HAS BEEN AUTOMATICALLY GENERATED !")
+    logger.warning(f"! YOUR API KEY IS: {SC_API_KEY} ")
+    logger.warning("! PLEASE SAVE THIS KEY. YOU WILL NEED IT FOR ALL API REQUESTS. !")
+    logger.warning("!------------------------------------------------------------!")
+elif key_source == "ephemeral":
+    logger.error("!------------------------------------------------------------!")
+    logger.error("! COULD NOT SAVE KEY TO DISK. USING EPHEMERAL KEY FOR THIS RUN !")
+    logger.error(f"! YOUR API KEY IS: {SC_API_KEY} ")
+    logger.error("!------------------------------------------------------------!")
+elif key_source == "file":
+    logger.info(f"Using API key from persistent storage: {API_KEY_FILE}")
+else:
+    logger.info("Using API key from environment (SC_API_KEY).")
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 async def verify_api_key(api_key: str = Depends(api_key_header)):
     """Verifies the mandatory API key."""
-    if api_key != SC_API_KEY:
+    if not api_key or api_key != SC_API_KEY:
         raise HTTPException(
             status_code=403,
             detail="Could not validate credentials. Please provide a valid X-API-Key header."
@@ -43,7 +89,7 @@ async def verify_api_key(api_key: str = Depends(api_key_header)):
 app = FastAPI(
     title="Scalable Capital API Wrapper",
     description="A portable REST API wrapper around the Scalable CLI (sc). Supports all sc commands dynamically via path and query parameters.",
-    version="0.2.1",
+    version="0.3.0",
     dependencies=[Depends(verify_api_key)]
 )
 
@@ -217,5 +263,23 @@ async def dynamic_proxy(path: str, request: Request):
     return run_sc_command(args)
 
 if __name__ == "__main__":
+    import sys
     import uvicorn
+    
+    # Simple CLI for managing the API key
+    if len(sys.argv) > 1 and sys.argv[1] == "set-key":
+        if len(sys.argv) < 3:
+            print("Usage: python main.py set-key <new-key>")
+            sys.exit(1)
+        
+        new_key = sys.argv[2]
+        try:
+            os.makedirs(CONFIG_DIR, exist_ok=True)
+            API_KEY_FILE.write_text(new_key)
+            print(f"✅ API key updated successfully in {API_KEY_FILE}")
+            sys.exit(0)
+        except Exception as e:
+            print(f"❌ Failed to update API key: {e}")
+            sys.exit(1)
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

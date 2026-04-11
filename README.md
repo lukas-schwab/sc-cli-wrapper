@@ -21,47 +21,56 @@ The wrapper just uses the official [Scalable CLI](https://github.com/ScalableCap
 >   - **YOU** are responsible for all of your actions. (Algorithmic) Trading is risky and I discourage everyone to use this API for anything beyond a hobby automation project.
 
 - **Security Layer**: This API **requires** an `X-API-Key` header for all requests.
-    - You MUST set the `SC_API_KEY` environment variable in `docker-compose.yml`.
-    - Without this key, the application will refuse to start.
+    - **Automatic Generation**: On the first start, a secure random API key is generated and saved to your persistent volume. 
+    - **Persistence**: The key is stored in the `scalable_config` volume. You can also manually set it using a CLI command inside the container.
+    - **Manual Override**: You can still provide an `SC_API_KEY` via environment variables or a `.env` file for explicit control.
     - **Note on Layered Security**: Access to your account relies on two distinct auth layers. The **API Key** (Layer 1) protects the wrapper (preventing strangers from calling the API), while the **CLI Login** (Layer 2) handles the actual encrypted session with Scalable Capital. The latter is handled by the official [Scalable CLI](https://github.com/ScalableCapital/scalable-cli) and remains untouched by this project. Ideally, you may also ensure that the API is never exposed to the public internet (Layer 3).
-- **Session Data**: Your session tokens are stored in the `scalable_config` Docker volume.
+- **Session & Key Data**: Both your session tokens and your API key are stored in the `scalable_config` Docker volume.
 - **Sources**: Binarys are downloaded from the official [Scalable CLI](https://github.com/ScalableCapital/scalable-cli).
 
 ## Features
 
+- **Zero-Config Start**: Automatically generates a secure API key if none is provided.
 - **Dynamic Commands**: Call ANY `sc` command via URL path mapping and flag conversion.
 - **Validated Trading**: Specialized, safe buy/sell flows with confirmation IDs and pre-flight checks.
 - **Search & Identity**: Convenient endpoints for instrument search and session verification.
-- **Docker Ready**: Automatic architecture detection (only tested on x86_64 WSL) and persistent sessions.
+- **Docker Ready**: Automatic architecture detection and persistent sessions/keys.
 
 ## Quick Start (Docker)
 
-The easiest way to run the API is via Docker Compose.
+The easiest way to run the API is via Docker.
 
-1.  **Configure API Key**:
-    Edit `docker-compose.yml` and set a secure value for `SC_API_KEY`.
-    ```yaml
-    environment:
-      - SC_API_KEY=your-secret-key
-    ```
-
-2.  **Build and Start**:
+1.  **Build and Start**:
     ```bash
-    docker-compose up -d --build
+    docker compose up -d --build
     ```
+
+2.  **Get your API Key**:
+    Check the container logs to find your automatically generated API key:
+    ```bash
+    docker compose logs | grep "YOUR API KEY IS"
+    ```
+    *Alternatively, you can set your own key (see below).*
 
 3.  **Authenticate with Scalable**:
-    The CLI inside the container needs a one-time login. You can execute the login command inside the running container:
+    The CLI inside the container needs a one-time login:
     ```bash
-    docker-compose exec scalable-api sc login
+    docker compose exec scalable-api sc login
     ```
     Follow the device-code instructions in your browser.
-    
-> [!TIP]
-> Authentication will only work if your scalable account is approved for CLI use. Read the official [Scalable CLI](https://github.com/ScalableCapital/scalable-cli) docs to learn more.
 
 4.  **Access the API**:
     Open [http://localhost:8000/docs](http://localhost:8000/docs) in your browser to view the interactive Swagger documentation.
+
+> [!TIP]
+> Authentication will only work if your Scalable account is approved for CLI use. Read the official [Scalable CLI](https://github.com/ScalableCapital/scalable-cli) docs to learn more.
+
+## Manual Key Configuration
+
+If you want to set a specific API key without using environment variables:
+```bash
+docker compose exec scalable-api python main.py set-key YOUR_CUSTOM_KEY
+```
 
 ## Usage
 
@@ -75,26 +84,26 @@ The API dynamically maps URL paths to `sc` subcommands. Query parameters or POST
 - **Boolean Flags**: `?dry-run=true` becomes `--dry-run`.
 
 ### Authentication
-All requests must include the `X-API-Key` header with the value you configured in your `docker-compose.yml`:
+All requests must include the `X-API-Key` header:
 ```bash
-curl -H "X-API-Key: your-secret-key" "http://localhost:8000/broker/analytics"
+curl -H "X-API-Key: your-generated-key" "http://localhost:8000/broker/analytics"
 ```
 
 ### Specialized Examples
 
 **Get Portfolio Overview:**
 ```bash
-curl -H "X-API-Key: your-secret-key" http://localhost:8000/broker/overview
+curl -H "X-API-Key: your-generated-key" http://localhost:8000/broker/overview
 ```
 
 **Search for Apple:**
 ```bash
-curl -H "X-API-Key: your-secret-key" "http://localhost:8000/broker/search?query=apple"
+curl -H "X-API-Key: your-generated-key" "http://localhost:8000/broker/search?query=apple"
 ```
 
 **Execute a Trade (Step 1: Preview):**
 ```bash
-curl -H "X-API-Key: your-secret-key" -X POST "http://localhost:8000/broker/trade/buy?isin=US0378331005&amount=100"
+curl -H "X-API-Key: your-generated-key" -X POST "http://localhost:8000/broker/trade/buy?isin=US0378331005&amount=100"
 ```
 *Returns a `confirmation_id`.*
 
@@ -103,12 +112,12 @@ curl -H "X-API-Key: your-secret-key" -X POST "http://localhost:8000/broker/trade
 
 **Execute a Trade (Step 2: Confirm):**
 ```bash
-curl -H "X-API-Key: your-secret-key" -X POST "http://localhost:8000/broker/trade/buy?isin=US0378331005&amount=100&confirm=XYZ-123"
+curl -H "X-API-Key: your-generated-key" -X POST "http://localhost:8000/broker/trade/buy?isin=US0378331005&amount=100&confirm=XYZ-123"
 ```
 
 ## Configuration
 
-You can customize the CLI version by changing the `SC_VERSION` build argument in `docker-compose.yml`.
+You can customize the CLI version by changing the `SC_VERSION` build argument in `docker compose`.
 
 ```yaml
 args:
