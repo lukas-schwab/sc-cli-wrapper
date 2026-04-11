@@ -26,7 +26,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(levelname)s:     %(message)s"
 )
-logger = logging.getLogger("scalable-api")
+logger = logging.getLogger("sc-api")
 
 def get_or_create_api_key():
     """

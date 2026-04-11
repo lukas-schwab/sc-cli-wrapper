@@ -22,10 +22,10 @@ The wrapper just uses the official [Scalable CLI](https://github.com/ScalableCap
 
 - **Security Layer**: This API **requires** an `X-API-Key` header for all requests.
     - **Automatic Generation**: On the first start, a secure random API key is generated and saved to your persistent volume. 
-    - **Persistence**: The key is stored in the `scalable_config` volume. You can also manually set it using a CLI command inside the container.
+    - **Persistence**: The key is stored in the `config` volume. You can also manually set it using a CLI command inside the container.
     - **Manual Override**: You can still provide an `SC_API_KEY` via environment variables or a `.env` file for explicit control.
     - **Note on Layered Security**: Access to your account relies on two distinct auth layers. The **API Key** (Layer 1) protects the wrapper (preventing strangers from calling the API), while the **CLI Login** (Layer 2) handles the actual encrypted session with Scalable Capital. The latter is handled by the official [Scalable CLI](https://github.com/ScalableCapital/scalable-cli) and remains untouched by this project. Ideally, you may also ensure that the API is never exposed to the public internet (Layer 3).
-- **Session & Key Data**: Both your session tokens and your API key are stored in the `scalable_config` Docker volume.
+- **Session & Key Data**: Both your session tokens and your API key are stored in the `config` Docker volume.
 - **Sources**: Binarys are downloaded from the official [Scalable CLI](https://github.com/ScalableCapital/scalable-cli).
 
 ## Features
@@ -55,7 +55,7 @@ The easiest way to run the API is via Docker.
 3.  **Authenticate with Scalable**:
     The CLI inside the container needs a one-time login:
     ```bash
-    docker compose exec scalable-api sc login
+    docker compose exec api sc login
     ```
     Follow the device-code instructions in your browser.
 
@@ -69,7 +69,7 @@ The easiest way to run the API is via Docker.
 
 If you want to set a specific API key without using environment variables:
 ```bash
-docker compose exec scalable-api python main.py set-key YOUR_CUSTOM_KEY
+docker compose exec api python main.py set-key YOUR_CUSTOM_KEY
 ```
 
 ## Usage
