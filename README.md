@@ -72,7 +72,7 @@ The easiest way to run the API is via Docker.
 The API dynamically maps URL paths to `sc` subcommands. Query parameters or POST JSON bodies are converted to CLI flags.
 
 - **Pattern**: `GET /<cmd>/<subcmd>?flag=value`
-- **Security News**: `curl "http://localhost:8000/broker/security-news?isin=IE00B4L5Y983"`
+- **Security News**: `curl "http://localhost:8000/broker/security-news?isin=ISIN_HERE"`
 - **Portfolio Analytics**: `curl http://localhost:8000/broker/analytics`
 - **Boolean Flags**: `?dry-run=true` becomes `--dry-run`.
 
@@ -96,7 +96,7 @@ curl -H "X-API-Key: your-generated-key" "http://localhost:8000/broker/search?que
 
 **Execute a Trade (Step 1: Preview):**
 ```bash
-curl -H "X-API-Key: your-generated-key" -X POST "http://localhost:8000/broker/trade/buy?isin=US0378331005&amount=100"
+curl -H "X-API-Key: your-generated-key" -X POST "http://localhost:8000/broker/trade/buy?isin=ISIN_HERE&amount=100"
 ```
 *Returns a `confirmation_id`.*
 
@@ -105,7 +105,7 @@ curl -H "X-API-Key: your-generated-key" -X POST "http://localhost:8000/broker/tr
 
 **Execute a Trade (Step 2: Confirm):**
 ```bash
-curl -H "X-API-Key: your-generated-key" -X POST "http://localhost:8000/broker/trade/buy?isin=US0378331005&amount=100&confirm=XYZ-123"
+curl -H "X-API-Key: your-generated-key" -X POST "http://localhost:8000/broker/trade/buy?isin=ISIN_HERE&amount=100&confirm=XYZ-123"
 ```
 
 ## Configuration
