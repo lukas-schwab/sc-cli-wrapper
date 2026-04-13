@@ -2,7 +2,7 @@
 
 <p align="center"><strong>A portable, Dockerized REST API for the Scalable CLI.</strong></p>
 
-<p align="center">This unofficial project wraps the official Scalable CLI (`sc`) into a FastAPI web service, seeking to extend upon the spirit of automation that Scalable kindly chose to provide with their CLI.</p>
+<p align="center">This unofficial project wraps the official Scalable CLI (`sc`) that Scalable kindly chose to provide into a FastAPI web service.</p>
 
 <br />
 
@@ -17,8 +17,8 @@ The wrapper just uses the official [Scalable CLI](https://github.com/ScalableCap
 > [!CAUTION]
 > This API has full power over your Scalable Capital account.
 >   - Do **NOT** rely on this code for anything but your personal projects.
->   - Do **NOT** use this code unless you understand every line yourself.
->   - **YOU** are responsible for all of your actions. (Algorithmic) Trading is risky and I discourage everyone to use this API for anything beyond a hobby automation project.
+>   - Do **NOT** use this code unless you understand every line yourself. The code may contain bugs or unexpected behavior.
+>   - **YOU** are responsible for all of your actions. (Algorithmic) Trading is risky and I discourage everyone to use this API for anything beyond a hobby project.
 
 - **Security Layer**: This API **requires** an `X-API-Key` header for all requests.
     - **Automatic Generation**: On the first start, a secure random API key is generated and saved to your persistent volume. 
